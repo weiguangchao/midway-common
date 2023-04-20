@@ -12,10 +12,14 @@ import { toBytes } from "@noble/hashes/utils";
 import { isEthereumAddress } from "@zcloak/crypto";
 import { helpers } from "@zcloak/did";
 import { SignatureData } from "../@types/signature";
+import { HttpUtils } from "./HttpUtils";
 
 @Provide()
 @Scope(ScopeEnum.Singleton)
 export class ValidSignService {
+  @Inject()
+  httpUtils: HttpUtils;
+
   @Inject()
   logger: ILogger;
 
@@ -90,16 +94,35 @@ export class ValidSignService {
         didSig = data[2].trim().split(",");
       }
 
-      const didUrl = didSig[0];
-      // maybe ethereum address or valid name
-      let originAddress: string = didUrl;
-      if (!isEthereumAddress(didUrl)) {
-        // is didUrl
-        if (didUrl.startsWith("did:zk:")) {
+      // parse address
+      // 1. didUrl 2.valid name 3.ethereum
+      const address = didSig[0];
+      let ethAddress: string = address;
+      let didUrl: any = address;
+      if (!isEthereumAddress(address)) {
+        // didUrl
+        if (address.startsWith("did:zk:")) {
+          const did = await helpers.fromDid(address);
+          ethAddress = did.identifier;
+        } else {
+          const org = await this.httpUtils.get(
+            "https://valid3-service.valid3.id/api/org/profile",
+            {
+              validName: address,
+            }
+          );
+          this.logger.debug("%s get org valid.id entity %j", didUrl, org);
+          // use valid name but not exists
+          if (!org) {
+            this.logger.warn("Valid name not found!");
+            return null;
+          }
+          didUrl = org.did;
           const did = await helpers.fromDid(didUrl);
-          originAddress = did.identifier;
+          ethAddress = did.identifier;
         }
       }
+
       const messageBuf = toBuffer(toBytes(msg));
 
       const sigHex = didSig[1].trim().substring(4, didSig[1].length);
@@ -107,7 +130,7 @@ export class ValidSignService {
       // const signatureBuf = toBuffer(sigHex);
       const signatureData = {
         didUrl,
-        address: originAddress,
+        address: ethAddress,
         message: messageBuf,
         signature: sigHex,
       };

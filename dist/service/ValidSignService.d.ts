@@ -1,7 +1,9 @@
 /// <reference types="node" />
 import { ILogger } from "@midwayjs/core";
 import { SignatureData } from "../@types/signature";
+import { HttpUtils } from "./HttpUtils";
 export declare class ValidSignService {
+    httpUtils: HttpUtils;
     logger: ILogger;
     verifySignature(signatureData: {
         address: string;
