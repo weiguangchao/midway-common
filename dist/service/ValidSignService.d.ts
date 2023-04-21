@@ -18,6 +18,7 @@ export declare class ValidSignService {
         address: string;
         message: Buffer;
         signature: any;
+        org: any;
     }>;
     private doParseContent;
     parseContentV2(content: string): Promise<{
@@ -25,5 +26,6 @@ export declare class ValidSignService {
         address: string;
         message: Buffer;
         signature: any;
+        org: any;
     }>;
 }

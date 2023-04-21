@@ -3,4 +3,5 @@ export interface SignatureData {
   address: string;
   signature: string;
   message: Buffer;
+  org: any;
 }

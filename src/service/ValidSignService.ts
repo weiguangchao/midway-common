@@ -110,13 +110,14 @@ export class ValidSignService {
       const address = didSig[0];
       let ethAddress: string = address;
       let didUrl: any = address;
+      let org: any = null;
       if (!isEthereumAddress(address)) {
         // didUrl
         if (address.startsWith("did:zk:")) {
           const did = await helpers.fromDid(address);
           ethAddress = did.identifier;
         } else {
-          const org = await this.httpUtils.get(
+          org = await this.httpUtils.get(
             `${this.valid3Config.serviceUrl}/api/org/profile`,
             {
               validName: address,
@@ -144,6 +145,7 @@ export class ValidSignService {
         address: ethAddress,
         message: messageBuf,
         signature: sigHex,
+        org,
       };
 
       this.logger.debug("signatureData %j", signatureData);
