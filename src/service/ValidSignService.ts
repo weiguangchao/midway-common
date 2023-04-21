@@ -7,11 +7,19 @@ import {
   isValidSignature,
   toBuffer,
 } from "@ethereumjs/util";
-import { ILogger, Inject, Provide, Scope, ScopeEnum } from "@midwayjs/core";
+import {
+  Config,
+  ILogger,
+  Inject,
+  Provide,
+  Scope,
+  ScopeEnum,
+} from "@midwayjs/core";
 import { toBytes } from "@noble/hashes/utils";
 import { isEthereumAddress } from "@zcloak/crypto";
 import { helpers } from "@zcloak/did";
 import { SignatureData } from "../@types/signature";
+import { Valid3Config } from "../@types/valid3";
 import { HttpUtils } from "./HttpUtils";
 
 @Provide()
@@ -22,6 +30,9 @@ export class ValidSignService {
 
   @Inject()
   logger: ILogger;
+
+  @Config("valid3")
+  valid3Config: Valid3Config;
 
   verifySignature(signatureData: {
     address: string;
@@ -106,7 +117,7 @@ export class ValidSignService {
           ethAddress = did.identifier;
         } else {
           const org = await this.httpUtils.get(
-            "https://valid3-service.valid3.id/api/org/profile",
+            `${this.valid3Config.serviceUrl}/api/org/profile`,
             {
               validName: address,
             }
